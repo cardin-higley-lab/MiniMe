@@ -75,7 +75,7 @@ bash pipeline_id.sh 230415_mouse11
 ## Project Structure
 
 ```
-├── environment.yml             # Conda environment setup file
+├── analysis.yml                # Conda environment setup file
 ├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
 ├── meso-aux-scripts/           # Folder with auxiliary scripts
 │   ├── pipeline_id.sh          # Main processing pipeline
