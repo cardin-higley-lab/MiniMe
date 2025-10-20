@@ -55,12 +55,13 @@ Example:
 bash pipeline_id.sh 230415_mouse11
 
 📁 Project Structure
-├── environment.yml             # Conda environment configuration
-├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
-├── meso-aux-scripts/           # Auxiliary scripts and pipelines
+├── environment.yml             # Conda environment setup file
+├── MesoROI_square_rotation.py  # ROI selection and alignment preparation
+├── meso-aux-scripts/           # Folder with auxiliary scripts
 │   ├── pipeline_id.sh          # Main processing pipeline
 │   └── ...
 └── README.md                   # Project documentation
+
 
 🧩 Requirements
 
