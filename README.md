@@ -1,69 +1,101 @@
-Mesoscopic Imaging Analysis Pipeline
+# Mesoscopic Imaging Analysis Pipeline
 
-This repository provides a streamlined workflow for preprocessing and analyzing widefield mesoscopic imaging data, including ROI selection, channel separation, and alignment with the Allen Brain Atlas.
+This repository provides a workflow for preprocessing and analyzing widefield mesoscopic imaging data.  
+The pipeline includes ROI selection, blue/green frame separation, and alignment with the Allen Brain Atlas.
 
-🧰 Installation and Setup
-1. Install Anaconda
+---
 
-First, download and install Anaconda for Python
-.
-Anaconda provides an isolated environment and all necessary dependencies for the analysis.
+## Installation and Setup
 
-2. Create the Conda Environment
+### Step 1: Install Anaconda
 
-After installing Anaconda, open a terminal (or Anaconda Prompt) and navigate to the directory containing this repository.
-Then create the environment using the provided .yml file:
+Download and install **Anaconda for Python** from:  
+https://www.anaconda.com/download
 
+Anaconda is used to manage all dependencies and environments.
+
+---
+
+### Step 2: Create the Conda Environment
+
+After installing Anaconda, open a terminal (or Anaconda Prompt) and navigate to this project folder.
+
+Create a new environment named **analysis** using the provided `environment.yml` file:
+
+```bash
 conda env create -f analysis.yml
+````
 
+Activate the environment:
 
-Once the environment is created, activate it:
-
+```bash
 conda activate analysis
+```
 
-🧪 Step 1: ROI Selection and Alignment Preparation
+---
 
-Run the following script to perform ROI selection, separate blue and green frames, and generate the transformation matrix (tform) for alignment with the Allen Brain Atlas:
+## Step 3: ROI Selection and Alignment Preparation
 
+Run the following script to perform ROI selection, separate blue/green frames, and generate the transformation matrix (`tform`) for alignment with the Allen Brain Atlas:
+
+```bash
 python MesoROI_square_rotation.py
+```
 
+This step performs:
 
-This script will:
+* ROI selection
+* Blue/green channel separation
+* Generation of the alignment transformation (`tform`)
 
-Allow you to manually select ROIs
+---
 
-Separate blue/green channel frames
+## Step 4: Run the Processing Pipeline
 
-Generate the alignment transformation (tform) file for later use
+Navigate to the `meso-aux-scripts` folder:
 
-⚙️ Step 2: Run the Processing Pipeline
-
-Navigate to the meso-aux-scripts folder:
-
+```bash
 cd meso-aux-scripts
+```
 
+Run the main processing pipeline for a specific mouse dataset:
 
-Run the main processing pipeline for a specific mouse dataset using:
-
+```bash
 bash pipeline_id.sh <mouse_folder_id>
-
-
-Replace <mouse_folder_id> with the ID or path of your mouse data folder.
+```
 
 Example:
 
+```bash
 bash pipeline_id.sh 230415_mouse11
+```
 
-📁 Project Structure
+---
+
+## Project Structure
+
+```
 ├── environment.yml             # Conda environment setup file
-├── MesoROI_square_rotation.py  # ROI selection and alignment preparation
+├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
 ├── meso-aux-scripts/           # Folder with auxiliary scripts
 │   ├── pipeline_id.sh          # Main processing pipeline
 │   └── ...
 └── README.md                   # Project documentation
+```
+
+---
+
+## Notes
+
+* Make sure the `analysis` environment is activated before running any scripts.
+* All dependencies are installed automatically from `environment.yml`.
+* Tested with Python 3.9+ and Anaconda 2024.
+
+---
+
+## License
+
+This project is released for research use.
+Please cite or acknowledge this repository if it contributes to your work.
 
 
-🧩 Requirements
-
-All required dependencies are automatically installed via the environment.yml file.
-You just need Anaconda and Python ≥ 3.9.
