@@ -1,7 +1,7 @@
 # Mesoscopic Imaging Analysis Pipeline
 
-This repository provides a workflow for preprocessing and analyzing widefield mesoscopic imaging data.  
-The pipeline includes ROI selection, blue/green frame separation, and alignment with the Allen Brain Atlas.
+This repository provides a workflow for preprocessing MiniMe mesoscopic imaging data with HPC.  
+The pipeline includes ROI selection, blue/green frame separation, hemodynamics correction and alignment with the Allen Brain Atlas.
 
 ---
 
