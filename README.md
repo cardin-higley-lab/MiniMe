@@ -67,7 +67,7 @@ bash pipeline_id.sh <mouse_folder_id>
 Example:
 
 ```bash
-bash pipeline_id.sh 230415_mouse11
+bash pipeline_id.sh HD_Mouse5_0928_Stg3
 ```
 
 ---
