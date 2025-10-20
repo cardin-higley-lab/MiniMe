@@ -76,6 +76,9 @@ bash pipeline_id.sh 230415_mouse11
 
 ```
 ├── analysis.yml                # Conda environment setup file
+├── mouseMesoInfo.xlsx          # Example Mouse Info file for ROI selection and frame separation
+├── tformMouse11.mat            # Example tform file for alignment with Allen Map
+├──parcels_updated12522.mat     # Allen Map for the parcellation of Meso Imaging
 ├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
 ├── meso-aux-scripts/           # Folder with auxiliary scripts
 │   ├── pipeline_id.sh          # Main processing pipeline
