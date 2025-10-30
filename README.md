@@ -20,7 +20,7 @@ Anaconda is used to manage all dependencies and environments.
 
 After installing Anaconda, open a terminal (or Anaconda Prompt) and navigate to this project folder.
 
-Create a new environment named **analysis** using the provided `environment.yml` file:
+Create a new environment named **analysis** using the provided `analysis.yml` file:
 
 ```bash
 conda env create -f analysis.yml
