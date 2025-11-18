@@ -12,8 +12,10 @@ dependencies:
   - opencv
   - tqdm
   - ipykernel
-  - globus-sdk
   - openpyxl
-  - keyboard
   - natsort
-prefix: C:\Users\hao\anaconda3\envs\analysis
+  - pip
+  - pip:
+      - keyboard
+prefix: C:\Users\HigleyLab_Miniscope\anaconda3\envs\analysis
+
