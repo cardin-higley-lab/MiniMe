@@ -52,22 +52,22 @@ This step performs:
 
 ## Step 4: Run the Processing Pipeline
 
-Navigate to the `meso_code` folder:
+Navigate to the `meso_code/cluster_code` folder:
 
 ```bash
-cd meso_code
+cd meso_code/cluster_code
 ```
 
 Run the main processing pipeline for a specific mouse dataset:
 
 ```bash
-bash pipeline_id.sh <mouse_folder_id>
+bash pipeline_MiniMe.sh <mouse_folder_id> <normalization_method>
 ```
 
 Example:
 
 ```bash
-bash pipeline_id.sh HD_Mouse5_0928_Stg3
+bash pipeline_MiniMe.sh HD_Mouse5_0928_Stg3 dff
 ```
 
 ---
@@ -78,10 +78,10 @@ bash pipeline_id.sh HD_Mouse5_0928_Stg3
 ├── analysis.yml                # Conda environment setup file
 ├── mouseMesoInfo.xlsx          # Example Mouse Info file for ROI selection and frame separation
 ├── tformMouse11.mat            # Example tform file for alignment with Allen Map
-├── parcels_updated12522.mat     # Allen Map for the parcellation of Meso Imaging
+├── parcels_updated12522.mat    # Allen Map for the parcellation of Meso Imaging
 ├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
-├── meso_code/           # Folder with auxiliary scripts
-│   ├── pipeline_id.sh          # Main processing pipeline
+├── meso_code/cluster_code/     # Folder with auxiliary scripts
+│   ├── pipeline_MiniMe.sh          # Main processing pipeline
 │   └── ...
 └── README.md                   # Project documentation
 ```
