@@ -52,10 +52,10 @@ This step performs:
 
 ## Step 4: Run the Processing Pipeline
 
-Navigate to the `meso-aux-scripts` folder:
+Navigate to the `meso_code` folder:
 
 ```bash
-cd meso-aux-scripts
+cd meso_code
 ```
 
 Run the main processing pipeline for a specific mouse dataset:
@@ -80,7 +80,7 @@ bash pipeline_id.sh HD_Mouse5_0928_Stg3
 ├── tformMouse11.mat            # Example tform file for alignment with Allen Map
 ├── parcels_updated12522.mat     # Allen Map for the parcellation of Meso Imaging
 ├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
-├── meso-aux-scripts/           # Folder with auxiliary scripts
+├── meso_code/           # Folder with auxiliary scripts
 │   ├── pipeline_id.sh          # Main processing pipeline
 │   └── ...
 └── README.md                   # Project documentation
