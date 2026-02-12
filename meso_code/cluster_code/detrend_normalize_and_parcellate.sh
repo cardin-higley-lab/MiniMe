@@ -1,0 +1,26 @@
+#!/bin/sh
+#SBATCH --job-name=1
+#SBATCH --ntasks=1 --nodes=1
+#SBATCH --mem-per-cpu=200G
+#SBATCH --time=12:00:00
+#SBATCH --partition="scavenge"
+#SBATCH --requeue
+
+module load MATLAB/2023a
+
+if [ "$#" -ne 2 ]; then
+    echo "Illegal number of parameters, exiting."
+    exit 2
+fi
+
+echo "Starting job on $HOSTNAME"
+
+
+cd /home/$USER/project/cluster_code/; matlab -nodisplay -r "detrend_normalize_and_parcellate "$1" "$2";exit";
+
+if [ "$?" -ne 0 ]; then
+    echo "Error in detrending script, exiting."
+    exit 2
+fi
+
+
