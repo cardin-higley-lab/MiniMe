@@ -1,0 +1,63 @@
+function [recon_signals, R2] = predict_behavior_from_corr(t_win, Kfolds, tC, t_imaging, behavior_traces, J)
+
+Len = t_imaging(t_win(end))-t_imaging(t_win(1)); 
+chunksize = floor(Len/Kfolds);
+
+behavior_vars = length(behavior_traces);
+recon_signals = cell(behavior_vars,1);
+for n = 1:behavior_vars
+    recon_signals{n} = nan(size(behavior_traces{n}));
+end
+
+% get riemmannian projections for instantaneous correlations 
+mRiemannianMean = RiemannianMean(tC);  
+mX = proj_R1(mRiemannianMean^(-1/2), tC);
+
+% calculate diffusion map 
+par.knn = max(round(size(mX,2)*0.01), 20);
+[ initAll, ~ ] = CalcInitAff2D(mX, par );
+
+dParams.maxInd = min(size(initAll,1), 1+J);
+[~, ~, Psi] = calcDiffusionMap(initAll, dParams);
+diffmap = Psi(:,2:end).'; 
+
+% kfold testing 
+for chunk_i = 1:Kfolds
+
+    % define trai
+    teststart = t_imaging(1) + (chunk_i - 1)*chunksize; 
+    testend = t_imaging(1) + chunk_i*chunksize;
+    
+    testinds = findClosestDouble(teststart,t_imaging(t_win)):findClosestDouble(testend,t_imaging(t_win));
+    traininds = setdiff(1:length(t_win), testinds);
+    behavior_resampled_tr = cell(behavior_vars,1);
+
+    for n = 1:behavior_vars
+        behavior_resampled_tr{n} = behavior_traces{n}(traininds);
+    end
+    diffmap_tr = diffmap(:, traininds);
+    diffmap_te = diffmap(:, testinds);
+
+    %% train
+    mdlglobal_phi = cell(behavior_vars, 1);
+
+    for n=1:behavior_vars
+        mdlglobal_phi{n} = fitlm(diffmap_tr(1:J,:)', behavior_resampled_tr{n});
+    end
+
+    %% test
+    isnan_te = squeeze(isnan(tC(1,1,testinds)));
+   
+    for n = 1:behavior_vars
+        recon_signals{n}(testinds(~isnan_te)) = predict(mdlglobal_phi{n}, diffmap_te(1:J,:)'); 
+    end
+    
+    
+end
+
+
+R2 = max(getstats(recon_signals, behavior_traces), 0);
+
+
+
+

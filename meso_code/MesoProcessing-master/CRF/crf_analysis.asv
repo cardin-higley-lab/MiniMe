@@ -1,0 +1,366 @@
+
+clear vars
+addpath(genpath('D:\meso_demo\analysis_scripts'))
+addpath(genpath('D:\meso_demo\MesoProcessing-master'))
+
+data_dir = 'K:\rachel\CRF\processed_09062023\';
+
+%% load data 
+
+% CDKL5 (+/Y) 
+control_m = {[data_dir 'ro139_365\365_crf_11112022\vis_data\'],... %crf looks bad
+    [data_dir 'ro139_365\365_crf_11142022\vis_data\'], ... %crf ill-conditioned
+    [data_dir 'ro139_365\365_crf_11152022\vis_data\'], ...
+    [data_dir 'ro139_365\365_crf_11162022\vis_data\'], ...
+    [data_dir 'ro159-406\406_01272023_crf\vis_data\'], ...
+    [data_dir 'ro193-604\604_03032023_crf\vis_data\'], ...
+    [data_dir 'ro193-604\604_03092023_crf\vis_data\'], ...
+    [data_dir 'ro230-539\539_06212023_crf\vis_data\'], ...
+    [data_dir 'ro230-539\539_06222023_crf2\vis_data\']}; 
+
+% CDKL5 (-/Y) 
+mutant_m = { [data_dir 'ro139_363\363_crf_11122022\vis_data\'], ...
+    [data_dir 'ro139_363\363_crf_11152022\vis_data\'], ...
+    [data_dir 'ro139_366\366_crf_11142022\vis_data\'], ...
+    [data_dir 'ro159-405\405_01262023_crf\vis_data\'], ...
+    [data_dir 'ro230-540\540_06212023_crf\vis_data\'], ...
+    [data_dir 'ro230-540\540_06222023_crf2\vis_data\']};
+
+% CDKL5 (+/+)
+control_f = {[data_dir 'ro159-401\401_01192023_crf\vis_data\'], ...
+    [data_dir 'ro159-403\403_01192023_crf\vis_data\'], ...
+    [data_dir 'ro159-404\404_01242023_crf\vis_data\'], ...
+    [data_dir 'ro229-535\535_06132023_crf\vis_data\'], ...
+    [data_dir 'ro229-535\535_06152023_crf\vis_data\'], ...
+    [data_dir 'ro229-536\536_06132023_crf\vis_data\'], ...
+    [data_dir 'ro229-536\536_06142023_crf\vis_data\']};
+    
+
+% CDKL5 (-/+)
+het_f = {[data_dir 'ro159-402\402_01272023_crf\vis_data\'], ...
+    [data_dir 'ro229-537\537_06132023\vis_data\'], ...
+    [data_dir 'ro229-537\537_06142023\vis_data\']}; 
+
+
+
+crf_struct = struct();
+groups = {control_m, mutant_m, control_f, het_f};
+group_names = {'control_m', 'mutant_m', 'control_f', 'het_f'};
+group_size = nan(1, length(group_names));
+for i = 1:length(groups)
+    group = groups{i};
+    crf_struct.group_size(i) = length(group);
+    locoVisResponses = nan(56, 7, length(group));
+    sitVisResponses = nan(56, 7, length(group));
+    percRunning = nan(1, length(group));
+    for ii = 1:length(group)
+        load([group{ii} 'crf_data.mat'])
+        locoVisResponses(:,:, ii) = mean_loco_responses;
+        sitVisResponses(:,:, ii) = mean_sit_responses;
+        percRunning(:,ii) = sum(loco, 'all')/(size(loco, 1)*size(loco, 2));
+    end
+    crf_struct.([group_names{i} '_locoVisResponses']) = locoVisResponses;
+    crf_struct.([group_names{i} '_sitVisResponses']) = sitVisResponses;
+    crf_struct.([group_names{i} '_percRunning']) = percRunning;
+end
+
+
+
+
+%% state differences --> number of trials running at vis onset 
+
+
+means = [mean(crf_struct.control_m_percRunning); mean(crf_struct.mutant_m_percRunning); mean(crf_struct.control_f_percRunning); mean(crf_struct.het_f_percRunning);];
+y_vals = nan(numel(means), max(crf_struct.group_size));
+y_vals(1, 1:length(crf_struct.control_m_percRunning)) = crf_struct.control_m_percRunning;
+y_vals(2, 1:length(crf_struct.mutant_m_percRunning)) = crf_struct.mutant_m_percRunning;
+y_vals(3, 1:length(crf_struct.control_f_percRunning)) = crf_struct.control_f_percRunning;
+y_vals(4, 1:length(crf_struct.het_f_percRunning)) = crf_struct.het_f_percRunning;
+y_vals = y_vals * 100;
+
+x_labels = categorical({'CDKL5 (+/Y)', 'CDKL5 (-/Y)', 'CDKL5 (+/+)', 'CDKL5 (+/-)'});  %, 'CDKL5 (-/-)'
+loco_time_cdkl5 = figure();
+boxchart(y_vals'); title('percent of vis stims running')
+ylabel('Fraction of time spent (%)'); box off; ax=gca; set(gca, 'TickDir', 'none')
+set(gca,'XTickLabel',x_labels); xtickangle(45)
+
+
+%% CRFs for locomotion
+
+
+% now looking at means
+control_m_mean = mean(crf_struct.control_m_locoVisResponses(2,:,:), 3, 'omitnan');
+control_m_se = std(crf_struct.control_m_locoVisResponses(2,:,:), 0, 3, 'omitnan')/sqrt(size(crf_struct.control_m_locoVisResponses(1,:,:), 3));
+
+mutant_m_mean = mean(crf_struct.mutant_m_locoVisResponses(2,:,:), 3, 'omitnan');
+mutant_m_se = std(crf_struct.mutant_m_locoVisResponses(2,:,:), 0, 3, 'omitnan')/sqrt(size(crf_struct.mutant_m_locoVisResponses(1,:,:), 3));
+
+contrasts = ([1, 2, 5, 10, 20, 50, 100]);
+test = figure(); hold on;
+shadedErrorBar(contrasts, control_m_mean, control_m_se, 'lineprops', {'k', 'markerfacecolor','k'}); 
+plot(contrasts, control_m_mean, 'ko')
+shadedErrorBar(contrasts, mutant_m_mean, mutant_m_se, 'lineprops', {'r', 'markerfacecolor','r'}); 
+plot(contrasts, mutant_m_mean, 'ro'); ylim([0.7 1.5])
+xlabel('Contrast (%)'); ylabel('mean v1 response'); title('Contrast response function - Locomotion')
+%exportgraphics(test, 'D:\meso_demo\figures\nrsa2\crf_m&f_loco_notlog_new.pdf','ContentType','vector')
+
+
+%% CRFs for sitting
+
+% now looking at means
+control_m_mean = mean(crf_struct.control_m_sitVisResponses(2,:,:), 3, 'omitnan');
+control_m_se = std(crf_struct.control_m_sitVisResponses(2,:,:), 0, 3, 'omitnan')/sqrt(size(crf_struct.control_m_sitVisResponses(1,:,:), 3));
+
+mutant_m_mean = mean(crf_struct.mutant_m_sitVisResponses(2,:,:), 3, 'omitnan');
+mutant_m_se = std(crf_struct.mutant_m_sitVisResponses(2,:,:), 0, 3, 'omitnan')/sqrt(size(crf_struct.mutant_m_sitVisResponses(1,:,:), 3));
+
+test = figure(); hold on;
+shadedErrorBar(contrasts, control_m_mean, control_m_se, 'lineprops', {'k', 'markerfacecolor','k'}); 
+plot(contrasts, control_m_mean, 'ko')
+shadedErrorBar(contrasts, mutant_m_mean, mutant_m_se, 'lineprops', {'r', 'markerfacecolor','r'}); 
+plot(contrasts, mutant_m_mean, 'ro'); 
+xlabel('Contrast (%)'); ylabel('mean v1 response'); title('Contrast response function - Not Loco')
+%exportgraphics(test, 'D:\meso_demo\figures\nrsa2\crf_m&f_sit_notlog_new.pdf','ContentType','vector')
+
+
+
+%% across trial covariation corr matrices 
+
+% control animals
+crf365_1 = load('ro139_365\365_crf_11112022\vis_data\_lowface10pnew');
+crf365_2 = load('ro139_365\365_crf_11142022\vis_data\_lowface10pnew');
+crf365_3 = load('ro139_365\365_crf_11152022\vis_data\_lowface10pnew');
+crf365_4 = load('ro139_365\365_crf_11162022\vis_data\_lowface10pnew');
+crf406 = load('ro159-406\406_01272023_crf\vis_data\_lowface10pnew');
+crf401 = load('ro159-401\401_01192023_crf\vis_data\_lowface10pnew');
+crf403 = load('ro159-403\403_01192023_crf\vis_data\_lowface10pnew');
+
+
+control_sessions = [crf365_1, crf365_2, crf365_3, crf365_4]; %, crf401, crf403  %, crf406 also male but looks weird 
+control_loco_responses = [];
+control_sit_responses = [];
+control_covar_loco_matrices = nan(56, 56, length(control_sessions));
+control_covar_sit_matrices = nan(56, 56, length(control_sessions));
+for i = 1:length(control_sessions)
+
+    session = control_sessions(i);
+    [numContrasts, numStims] = size(session.loco);
+    session_reshaped = reshape(session.vis_responses, 56, numContrasts*numStims);
+    
+    session_loco = session_reshaped(:,session.loco==1);
+    control_loco_responses = [control_loco_responses session_loco];
+    session_sit = session_reshaped(:,session.loco==0);
+    control_sit_responses = [control_sit_responses session_sit];
+
+    loco_corrMat = corrcoef(session_loco');
+    control_covar_loco_matrices(:,:,i) = loco_corrMat;
+    %figure();imagesc(loco_corrMat); title('loco corr'); caxis([0 1])
+
+    sit_corrMat = corrcoef(session_sit');
+    control_covar_sit_matrices(:,:,i) = sit_corrMat;
+    %figure();imagesc(sit_corrMat); title('sit corr'); caxis([0 1])
+
+end
+control_covar_loco_matMeans = mean(control_covar_loco_matrices, 3, 'omitnan');
+control_covar_sit_matMeans = mean(control_covar_sit_matrices, 3, 'omitnan');
+
+
+
+% mutant animals
+crf363_1 = load('ro139_363\363_crf_11122022\vis_data\_lowface10pnew');
+crf363_2 = load('ro139_363\363_crf_11152022\vis_data\_lowface10pnew');
+crf366 = load('ro139_366\366_crf_11142022\vis_data\_lowface10pnew');
+crf405 = load('ro159-405\405_01262023_crf\vis_data\_lowface10pnew');
+crf402 = load('ro159-402\402_01272023_crf\vis_data\_lowface10pnew');
+
+
+mutant_sessions = [crf363_1, crf363_2, crf366]; % , crf402  %also male but looks weird: crf405
+mutant_loco_responses = [];
+mutant_sit_responses = [];
+mutant_covar_loco_matrices = nan(56, 56, length(mutant_sessions));
+mutant_covar_sit_matrices = nan(56, 56, length(mutant_sessions));
+for i = 1:length(mutant_sessions)
+
+    session = mutant_sessions(i);
+    [numContrasts, numStims] = size(session.loco);
+    session_reshaped = reshape(session.vis_responses, 56, numContrasts*numStims);
+    
+    session_loco = session_reshaped(:,session.loco==1);
+    mutant_loco_responses = [mutant_loco_responses session_loco];
+    
+    session_sit = session_reshaped(:,session.loco==0);
+    mutant_sit_responses = [mutant_sit_responses session_sit];
+
+    loco_corrMat = corrcoef(session_loco');
+    mutant_covar_loco_matrices(:,:,i) = loco_corrMat;
+    %figure();imagesc(loco_corrMat); title('loco corr'); caxis([0 1])
+
+    sit_corrMat = corrcoef(session_sit');
+    mutant_covar_sit_matrices(:,:,i) = sit_corrMat;
+    %figure();imagesc(sit_corrMat); title('sit corr'); caxis([0 1])
+
+end
+mutant_covar_loco_matMeans = mean(mutant_covar_loco_matrices, 3, 'omitnan');
+mutant_covar_sit_matMeans = mean(mutant_covar_sit_matrices, 3, 'omitnan');
+
+
+whatParcels = [2:2:20 28:2:52];
+allCorrs = cat(3, control_covar_sit_matMeans, control_covar_loco_matMeans, mutant_covar_sit_matMeans, mutant_covar_loco_matMeans);
+minCorr = min(allCorrs(whatParcels,whatParcels, :), [], 'all')*0.95;
+
+cortical_covar_fig = figure(); 
+tiledlayout(2, 2, 'TileSpacing', 'none', 'Padding', 'none'); 
+nexttile(1); imagesc(tril(control_covar_sit_matMeans(whatParcels,whatParcels))); caxis([minCorr 1]); box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none'); 
+nexttile(2); imagesc(tril(control_covar_loco_matMeans(whatParcels, whatParcels))); caxis([minCorr 1]);  box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none', 'YColor', 'w'); 
+
+nexttile(3); imagesc(tril(mutant_covar_sit_matMeans(whatParcels,whatParcels))); caxis([minCorr 1]); box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none'); 
+nexttile(4); imagesc(tril(mutant_covar_loco_matMeans(whatParcels, whatParcels))); caxis([minCorr 1]);  box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none', 'YColor', 'w'); 
+
+myCM=parula(256);
+myCM(1,:)=1;
+myCM(end,:)=1;
+colormap([1 1 1; myCM]);
+colorbar()
+exportgraphics(cortical_covar_fig, 'D:\meso_demo\figures\nrsa2\cortical_covar_fig_males.pdf', 'ContentType','vector','Resolution',1000)
+
+
+% look at diff between states within each geno
+state_change_covar_fig = figure(); 
+tiledlayout(2, 2, 'TileSpacing', 'none', 'Padding', 'none'); 
+
+control_change = control_covar_loco_matMeans(whatParcels,whatParcels) - control_covar_sit_matMeans(whatParcels,whatParcels);
+nexttile(1); imagesc(tril(control_change)); caxis([-0.2 0.2]); box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none');
+
+mutant_change = mutant_covar_loco_matMeans(whatParcels,whatParcels) - mutant_covar_sit_matMeans(whatParcels,whatParcels);
+nexttile(3); imagesc(tril(mutant_change)); caxis([-0.2 0.2]);  box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none', 'YColor', 'w'); 
+
+colormap([1 1 1; bluewhitered]); 
+colorbar()
+exportgraphics(state_change_covar_fig, 'D:\meso_demo\figures\nrsa2\state_change_covar_fig_males.pdf', 'ContentType','vector','Resolution',1000)
+
+
+% look at diff between states within each geno
+geno_change_covar_fig = figure(); 
+tiledlayout(2, 2, 'TileSpacing', 'none', 'Padding', 'none'); 
+
+sit_change = mutant_covar_sit_matMeans(whatParcels,whatParcels) - control_covar_sit_matMeans(whatParcels,whatParcels);
+nexttile(1); imagesc(tril(sit_change)); caxis([-0.2 0.2]); box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none');
+
+loco_change = mutant_covar_loco_matMeans(whatParcels,whatParcels) - control_covar_loco_matMeans(whatParcels,whatParcels);
+nexttile(2); imagesc(tril(loco_change)); caxis([-0.2 0.2]);  box off
+set(gca,'XTickLabel',[] ,'YTickLabel',[], 'XTick',[],'YTick',[], 'xcolor','none', 'YColor', 'w'); 
+
+colormap([1 1 1; bluewhitered]); 
+colorbar()
+exportgraphics(geno_change_covar_fig, 'D:\meso_demo\figures\nrsa2\geno_change_covar_fig_males.pdf', 'ContentType','vector','Resolution',1000)
+
+
+
+%% mutant vs control across trial covar for v1 vs v2 during sit vs loco 
+
+
+control_sit_v1 = control_sit_responses(1,:);
+mutant_sit_v1 = mutant_sit_responses(1,:);
+
+control_loco_v1 = control_loco_responses(1,:);
+mutant_loco_v1 = mutant_loco_responses(1,:);
+
+control_sit_v2 = control_sit_responses(3,:);
+mutant_sit_v2 = mutant_sit_responses(3,:);
+
+control_loco_v2 = control_loco_responses(3,:);
+mutant_loco_v2 = mutant_loco_responses(3,:);
+
+control_sit_vl = control_sit_responses(11,:);
+mutant_sit_vl = mutant_sit_responses(11,:);
+
+control_loco_vl = control_loco_responses(11,:);
+mutant_loco_vl = mutant_loco_responses(11,:);
+
+control_sit_m2 = control_sit_responses(51,:);
+mutant_sit_m2 = mutant_sit_responses(51,:);
+
+control_loco_m2 = control_loco_responses(51,:);
+mutant_loco_m2 = mutant_loco_responses(51,:);
+
+% quiescnece v1 vs v2
+sit_cort_covariation = figure(); hold on
+plot(control_sit_v1, control_sit_vl, 'ko'); lsline;
+control_sit = corrcoef(control_sit_v1, control_sit_vl, 'Rows','Complete');
+str = ['Corr = ' num2str(control_sit(1,2))];
+annotation('textbox', [0.25, 0.8, 0.1, 0.1], 'String',str);
+
+plot(mutant_sit_v1, mutant_sit_vl, 'ro'); lsline; 
+mutant_sit = corrcoef(mutant_sit_v1, mutant_sit_vl, 'Rows','Complete');
+str = ['Corr = ' num2str(mutant_sit(1,2))];
+a = annotation('textbox', [0.25, 0.7, 0.1, 0.1], 'String',str); a.Color = 'red';
+
+title('Quiescence')
+xlabel('V1 (VISp)'); ylabel('V2 (VISl)')
+legend({'CDKL5 (+/Y)', '', 'CDKL5 (-/Y)', ''})
+exportgraphics(sit_cort_covariation, 'D:\meso_demo\figures\nrsa2\sit_cort_v1vl_covariation.pdf','ContentType','vector')
+
+% locomotion v1 vs v2
+loco_cort_covariation = figure(); hold on
+plot(control_loco_v1, control_loco_vl, 'ko'); lsline;
+control_sit = corrcoef(control_loco_v1, control_loco_vl, 'Rows','Complete');
+str = ['Corr = ' num2str(control_sit(1,2))];
+annotation('textbox', [0.25, 0.8, 0.1, 0.1], 'String',str);
+
+plot(mutant_loco_v1, mutant_loco_vl, 'ro'); lsline; 
+mutant_sit = corrcoef(mutant_loco_v1, mutant_loco_vl, 'Rows','Complete');
+str = ['Corr = ' num2str(mutant_sit(1,2))];
+a = annotation('textbox', [0.25, 0.7, 0.1, 0.1], 'String',str); a.Color = 'red';
+
+title('Locomotion')
+xlabel('V1 (VISp)'); ylabel('V2 (VISl)')
+legend({'CDKL5 (+/Y)', '', 'CDKL5 (-/Y)', ''})
+exportgraphics(loco_cort_covariation, 'D:\meso_demo\figures\nrsa2\loco_cort_v1vl_covariation.pdf','ContentType','vector')
+
+
+
+
+
+
+% quiescnece v1 vs m2
+sit_cort_covariation = figure(); hold on
+plot(control_sit_v1, control_sit_m2, 'ko'); lsline;
+control_sit = corrcoef(control_sit_v1, control_sit_m2, 'Rows','Complete');
+str = ['Corr = ' num2str(control_sit(1,2))];
+annotation('textbox', [0.25, 0.8, 0.1, 0.1], 'String',str);
+
+plot(mutant_sit_v1, mutant_sit_m2, 'ro'); lsline; 
+mutant_sit = corrcoef(mutant_sit_v1, mutant_sit_m2, 'Rows','Complete');
+str = ['Corr = ' num2str(mutant_sit(1,2))];
+a = annotation('textbox', [0.25, 0.7, 0.1, 0.1], 'String',str); a.Color = 'red';
+
+title('Quiescence')
+xlabel('V1 (VISp)'); ylabel('M2 (MOs)')
+legend({'CDKL5 (+/Y)', '', 'CDKL5 (-/Y)', ''})
+exportgraphics(sit_cort_covariation, 'D:\meso_demo\figures\nrsa2\sit_cort_v1m2_covariation.pdf','ContentType','vector')
+
+% locomotion v1 vs m2
+loco_cort_covariation = figure(); hold on
+plot(control_loco_v1, control_loco_m2, 'ko'); lsline;
+control_sit = corrcoef(control_loco_v1, control_loco_m2, 'Rows','Complete');
+str = ['Corr = ' num2str(control_sit(1,2))];
+annotation('textbox', [0.25, 0.8, 0.1, 0.1], 'String',str);
+
+plot(mutant_loco_v1, mutant_loco_m2, 'ro'); lsline; 
+mutant_sit = corrcoef(mutant_loco_v1, mutant_loco_m2, 'Rows','Complete');
+str = ['Corr = ' num2str(mutant_sit(1,2))];
+a = annotation('textbox', [0.25, 0.7, 0.1, 0.1], 'String',str); a.Color = 'red';
+
+title('Locomotion')
+xlabel('V1 (VISp)'); ylabel('M2 (MOs)')
+legend({'CDKL5 (+/Y)', '', 'CDKL5 (-/Y)', ''})
+exportgraphics(loco_cort_covariation, 'D:\meso_demo\figures\nrsa2\loco_cort_v1m2_covariation.pdf','ContentType','vector')
+
+

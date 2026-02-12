@@ -1,0 +1,162 @@
+
+
+data_dir = 'K:\rachel\CRF\processed_09062023\';
+contrasts = ([1, 2, 5, 10, 20, 50, 100]);
+t = -preSeconds:(preSeconds+postSeconds)/(preSeconds*fs+postSeconds*fs):postSeconds;
+
+%% load data 
+
+% CDKL5 (+/Y) 
+control_m = {[data_dir 'ro159-406'], ... 
+    [data_dir 'ro139_365'],... %crf looks bad
+    [data_dir 'ro193-604'], ...
+    [data_dir 'ro230-539']}; 
+%
+
+% CDKL5 (-/Y) 
+mutant_m = { [data_dir 'ro139_363'], ...
+    [data_dir 'ro159-405'], ...
+    [data_dir 'ro230-540']};
+%
+
+% CDKL5 (+/+)
+control_f = {[data_dir 'ro159-401'], ...
+    [data_dir 'ro159-403'], ...
+    [data_dir 'ro159-404'], ...
+    [data_dir 'ro229-535'], ...
+    [data_dir 'ro229-536']};
+%
+
+% CDKL5 (-/+)
+het_f = {[data_dir 'ro159-402'], ...
+    [data_dir 'ro229-537']};
+
+
+% % CDKL5 (+/Y) 
+% control_m = {[data_dir 'ro139_365'],... %crf looks bad
+%     [data_dir 'ro159-406'], ...
+%     [data_dir 'ro193-604'], ...
+%     [data_dir 'ro230-539'], ...
+%     [data_dir 'ro159-401'], ...
+%     [data_dir 'ro159-403'], ...
+%     [data_dir 'ro159-404'], ...
+%     [data_dir 'ro229-536']}; 
+%    % [data_dir 'ro229-535'], ...
+% 
+% 
+% % CDKL5 (-/Y) 
+% mutant_m = { [data_dir 'ro139_363'], ...
+%     [data_dir 'ro159-405'], ...
+%     [data_dir 'ro230-540'], ...
+%     [data_dir 'ro159-402'], ...
+%     [data_dir 'ro229-537']};
+
+
+crf_struct = struct();
+groups = {control_m, mutant_m, control_f, het_f};
+group_names = {'control_m', 'mutant_m', 'control_f', 'het_f'};
+group_size = nan(1, length(group_names));
+for geno = 1:length(groups)
+    
+    % group = genotype/sex
+    group = groups{geno};
+    crf_struct.group_size(geno) = length(group); % length(group) should tell you how many animals are in the group
+    locoVisResponses = nan(56, 7, length(group));
+    sitVisResponses = nan(56, 7, length(group));
+    for animals = 1:length(group)
+        
+        animal = group(animals);
+        disp(['processing: ' cell2mat(animal)])
+        subfolders = dir(fullfile(cell2mat(animal)));
+
+        locoVisResponse = []; %nan(56, 7, 1);
+        sitVisResponse = [];
+
+        sit_visOnset = [];
+        loco_visOnset = [];
+
+        v1_aligned_100p_all = [];
+
+        for sessions = 1:length(subfolders)
+            session = subfolders(sessions).name;
+            if length(session) < 3
+                continue;
+            end
+            folder = fullfile(animal, session);
+            load([cell2mat(folder) '\vis_data\crf_data.mat'])
+            load([cell2mat(folder) '\vis_data\crf_trace_data.mat'])
+            
+            % % add vis_responses to animal-specific mat 
+            % loco_responses = nan(size(vis_responses));
+            % loco_responses(:, loco==1) = vis_responses(:, loco==1);
+            % 
+            % sit_responses = nan(size(vis_responses));
+            % sit_responses(:, loco==0) = vis_responses(:, loco==0);
+            % 
+            % locoVisResponse = cat(3, locoVisResponse, loco_responses);
+            % sitVisResponse = cat(3, locoVisResponse, sit_responses);
+            % 
+            % sit_visOnset = cat(1, sit_visOnset, normed_aligned_sit);
+            % loco_visOnset = cat(1, loco_visOnset, normed_aligned_loco);
+
+            v1_aligned_100p_all = cat(1, v1_aligned_100p_all, v1_aligned_100p);
+
+        end
+
+        % test = figure(); hold on;
+        % shadedErrorBar(contrasts, animal_loco_mean, animal_loco_se, 'lineprops', {'k', 'markerfacecolor','k'});
+        % plot(contrasts, animal_loco_mean, 'ko')
+        % shadedErrorBar(contrasts, animal_sit_mean, animal_sit_se, 'lineprops', {'r', 'markerfacecolor','r'});
+        % plot(contrasts, animal_sit_mean, 'ro')
+        % xlabel('Contrast (%)'); ylabel('mean v1 response'); title(cell2mat(animal),'Interpreter',"none")
+
+
+        % % make plots for loco/sitting crf curves 
+        % animal_loco_mean = mean(locoVisResponse(1,:,:), 3, 'omitnan');
+        % animal_loco_se = std(locoVisResponse(1,:,:), 0, 3,
+        % 'omitnan')/sqrt(size(locoVisResponse(1,:,:), 3)-1); %remove -1 from these lines 
+        % animal_sit_mean = mean(sitVisResponse(1,:,:), 3, 'omitnan');
+        % animal_sit_se = std(sitVisResponse(1,:,:), 0, 3, 'omitnan')/sqrt(size(sitVisResponse(1,:,:), 3)-1);
+        % 
+        % test = figure(); hold on;
+        % shadedErrorBar(t(2:end), control_mean(1, :), control_sd(1, :), 'lineprops', 'k'); 
+        % shadedErrorBar(t(2:end), mean(mutant_mean(1, :), 1, 'omitnan'), mean(mutant_sd(1, :), 1, 'omitnan'), 'lineprops', 'r'); 
+        % xlabel('time'); ylabel('mean v1 response'); ylim([-0.01 0.045]);
+        % title('Locomotion Onset')   
+        % xline(0); legend("CDKL5 Male Control", "",  "", "", "CDKL5 Male Mutant");
+        % 
+        % actually add data we care about to group struct 
+
+        
+        % v1_sit_avg = squeeze(mean(sit_visOnset(:,1,:), 1, 'omitnan')); disp(['sit bouts: ' num2str(size(sit_visOnset, 1))])
+        % v1_loco_avg = squeeze(mean(loco_visOnset(:,1,:), 1, 'omitnan')); disp(['sit bouts: ' num2str(size(loco_visOnset, 1))])
+        % 
+        % figure(); hold on
+        % subplot(2,1,1); plot(t(2:end), v1_sit_avg); title('wheel off'); xline(0); ylim([min([v1_loco_avg; v1_sit_avg]), max([v1_loco_avg; v1_sit_avg])])
+        % subplot(2,1,2); plot(t(2:end), v1_loco_avg); title('wheel on'); xline(0); ylim([min([v1_loco_avg; v1_sit_avg]), max([v1_loco_avg; v1_sit_avg])])
+        % sgtitle(cell2mat(animal),'Interpreter',"none")
+        
+
+        locoVisResponses(:,:, animals) = mean(locoVisResponse, 3, 'omitnan');
+        sitVisResponses(:,:, animals) = mean(sitVisResponse, 3, 'omitnan');
+
+
+        v1_aligned_100p_avg_loco = squeeze(mean(v1_aligned_100p_all(loco(7,:)==1, :,:), 1, 'omitnan'));
+        v1_aligned_100p_avg_loco_visOnset = 
+        v1_aligned_100p_avg_sit = squeeze(mean(v1_aligned_100p_all(loco(7,:)==0, :,:), 1, 'omitnan'));
+        v1_aligned_100p_avg_sit_visOnset = 
+
+    end
+
+    crf_struct.([group_names{geno} '_locoVisResponses']) = locoVisResponses;
+    crf_struct.([group_names{geno} '_sitVisResponses']) = sitVisResponses;
+
+end
+
+
+for i = 1:10
+    figure();
+    plot(t(2:end), v1_aligned_100p_all(loco(7,:)==1, :,:))
+
+end
+

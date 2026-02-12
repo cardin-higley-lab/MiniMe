@@ -1,0 +1,199 @@
+%% curve fitting
+
+%https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6740720/
+
+% The hyperbolic ratio function has three parameters: 
+% C50, the semisaturation constant, which specifies where on the contrast axis the curve is centered; 
+% n, the exponent, which determines the steepness of the curve and the sharpness of the nonlinearities at high and low contrasts; 
+% Rmax, the value of Vm or spike rate at which the response saturates.
+
+
+%load('D:\meso_demo\CDKL5_CRF\ro159-405\405_01262023_crf\crf_data_lowface10p.mat'); %exemplar one i was using 
+%load('D:\meso_demo\CDKL5_CRF\ro159-403\403_01192023_crf\crf_data_lowface10p.mat');
+loco_responses = nan(size(v1_responses));
+loco_responses(loco==1) = v1_responses(loco==1);
+avg_loco = mean(loco_responses, 2, 'omitnan')';
+avg_loco_se = std(loco_responses, 0, 2, 'omitnan')/sqrt(size(loco_responses, 2));
+
+sit_responses = nan(size(v1_responses));
+sit_responses(loco==0) = v1_responses(loco==0);
+avg_sit = mean(sit_responses, 2, 'omitnan')';
+avg_sit_se = std(sit_responses, 0, 2, 'omitnan')/sqrt(size(sit_responses, 2));
+
+
+contrasts = [1 2 5 10 20 50 100];
+x = contrasts'; %choose from workspace, should be column vector
+y = avg_loco'; %choose from workspace, should be column vector
+
+
+%% new new mike code 
+
+y = loco_responses;
+yBS = zeros(size(y,1),1); %new array to hold bootstrap data
+yAvg = mean(y,2, 'omitnan');  %generate average of all data to compare with bootstrap
+iter = 10000;   %number of times to sample with replacement for bootstrap
+
+% run the bootstrap to produce yBS
+for i = 1:length(contrasts) %note - assumes data are (contrasts,trials)
+    temp=y(i,:);
+    temp=temp(isnan(temp)==0); %only pull out non-Nan points
+    val=0;
+    for j=1:iter
+        val=val+(temp(randi([1 length(temp)])));
+    end
+    yBS(i)=val/iter;
+end
+
+% curve fit to Hill equation
+fitfun = fittype(@(a,b,c,x) a./(1+((b./x).^c)));  % a=Rmax, b=c50, c=slope
+% lower = [0,0,0]; %lower bound for params
+% upper = [5,100,3];  %upper bound for params
+% start = [1,1,1];  %initial values for params
+% [fitted_curve,gof] = fit(x,yBS,fitfun, 'Lower', lower, 'Upper', upper, 'StartPoint', start);
+[fitted_curve,gof] = fit(x,yBS,fitfun);
+coeffs = coeffvalues(fitted_curve);
+disp(coeffs)
+
+% plot the results
+figure;hold on;
+plot(x,yAvg,'r','DisplayName','test');
+plot(x,yBS,'g','DisplayName','yBS');
+legend;
+plot(fitted_curve,'b');
+str=strcat('Rmax=',num2str(coeffs(1)),' c50=',num2str(coeffs(2)),' slope=',num2str(coeffs(3)));
+annotation('textbox','String',str);
+
+
+
+
+
+
+%% plot with individual data points, color-coded by state 
+% 
+% without averages crf values 
+ind_responses = figure(); hold on
+h1 = plot(x,sit_responses, 'k.'); %plot actual dff values as dots 
+h2 = plot(x,loco_responses, 'r.'); %plot actual dff values as dots 
+legend([h1(1) h2(1)], {'Quiescence', 'Locomotion'})
+xlabel('Contrast (%)')
+ylabel('V1 response (dF/F)')
+% exportgraphics(ind_responses, 'crf_ind_resp.pdf','ContentType','vector')
+% 
+% with averaged crf values 
+ind_responses_wCRF = figure(); hold on
+% h1 = plot(x,sit_responses, 'k.'); %plot actual dff values as dots 
+% shadedErrorBar(x, avg_sit, avg_sit_se, 'lineprops', {'k', 'markerfacecolor','k'}); 
+% plot(x, avg_sit, 'ko')
+
+h2 = plot(x,loco_responses, 'r.'); %plot actual dff values as dots 
+shadedErrorBar(x, avg_loco, avg_loco_se, 'lineprops', {'r', 'markerfacecolor','r'}); 
+plot(x, avg_loco, 'ko'); ylim([-0.1 0.7])
+
+legend([h1(1) h2(1)], {'Quiescence', 'Locomotion'})
+xlabel('Contrast (%)')
+ylabel('V1 response (dF/F)')
+exportgraphics(ind_responses_wCRF, 'crf_ind_wCRF.pdf','ContentType','vector')
+
+
+%% mike method
+
+
+fitfun = fittype(@(a,b,c,x) a./(1+((b./x).^c)));  % a=Rmax, b=c50, c=slope
+lower = [0,-1,0]; %lower bound for params
+upper = [5,50,3];  %upper bound for params
+start = [1,1,1];  %initial values for params
+[fitted_curve,gof] = fit(x,y,fitfun, 'Lower', lower, 'Upper', upper, 'StartPoint', start);
+coeffs = coeffvalues(fitted_curve);
+rmax = coeffs(1); 
+c50 = coeffs(2);
+c = coeffs(3);
+
+figure(); hold on;
+plot(x,y, '.') %plot actual dff values as dots 
+new_x = 1:100;
+new_line = rmax./(1+((c50./new_x).^c));
+plot(new_x, new_line, 'k')
+
+
+
+
+
+
+%% nlinfitmethod (not from curve fitting gui) --> for hyperbolic ratio 
+
+% beta = nlinfit(X,Y,modelfun,beta0) 
+% nlinfit = non-linear regression
+% beta = a vector of estimated coefficients for the nonlinear regression of the responses in Y on the predictors in X 
+% modelfun = specified model. The coefficients are estimated using iterative least squares estimation, with initial values specified by 
+% beta0 = specified initial values 
+
+
+% modelFun =  Rmax*Cn/(C50+Cn)
+modelFun = @(p,x) p(1).*x./(p(2)+x); % p(1) = Rmax;    p(2) = c50
+startingVals = [-1 1]; % try with any other starting values. 
+[beta,R,J,CovB,MSE,ErrorModelInfo] = nlinfit(contrasts,avg_loco, modelFun, startingVals);
+Rmax =  beta(1); c50 = beta(2);
+
+
+figure(); hold on;
+plot(x,y, '.') %plot actual dff values as dots 
+new_x = 1:100;
+new_line = Rmax.*new_x./(c50+new_x);
+plot(new_x, new_line, 'k')
+
+
+
+
+%% nlinfitmethod (not from curve fitting gui)
+
+% beta = nlinfit(X,Y,modelfun,beta0) 
+% nlinfit = non-linear regression
+% beta = a vector of estimated coefficients for the nonlinear regression of the responses in Y on the predictors in X 
+% modelfun = specified model. The coefficients are estimated using iterative least squares estimation, with initial values specified by 
+% beta0 = specified initial values 
+
+
+% % modelFun =  atan(b*(a^2-x^2)/a/x)
+% modelFun = @(p,x) atan(p(2).*(p(1).^2-x.^2)./p(1)./x)'; % p(1) = a;    p(2) = b
+% startingVals = [-1 1]; % try with any other starting values. 
+% [beta,R,J,CovB,MSE,ErrorModelInfo] = nlinfit(contrasts,avg_loco, modelFun, startingVals);
+% a =  beta(1); b = beta(2);
+% 
+% 
+% 
+% %figure(); hold on;
+% %plot(x,y, '.') %plot actual dff values as dots 
+% 
+% % modeled_line = atan(b.*(a.^2-x.^2)./a./x)';
+% % plot(x, modeled_line)
+% 
+% new_x = 1:100;
+% new_line = atan(b.*(a.^2-new_x.^2)./a./new_x)';
+% plot(new_x, new_line, 'cyan')
+% 
+% 
+% %k=[0.01 0.01];
+% %r= 0.198819683720919 0.853905668387782
+% %g= -10 10
+% %cyan = -1 1
+% 
+
+
+
+
+
+%% used curve fitter tool to help fit data 
+%try cftool
+
+
+figure();
+plot(x,y, '.')
+a =  -0.03872; b = 0.000394 ;
+hold on;
+new_x = 1:100;
+modeled_line = atan(b.*(a.^2-x.^2)./a./x)';
+plot(x, modeled_line)
+new_line = atan(b.*(a.^2-new_x.^2)./a./new_x)';
+plot(new_x, new_line, 'k')
+
+
