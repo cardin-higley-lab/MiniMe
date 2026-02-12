@@ -80,9 +80,9 @@ bash pipeline_MiniMe.sh HD_Mouse5_0928_Stg3 dff
 ├── tformMouse11.mat            # Example tform file for alignment with Allen Map
 ├── parcels_updated12522.mat    # Allen Map for the parcellation of Meso Imaging
 ├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
-├── meso_code/cluster_code/     # Folder with auxiliary scripts
-│   ├── pipeline_MiniMe.sh          # Main processing pipeline
-│   └── ...
+├── meso_code                   # Folder with auxiliary scripts
+│   ├── cluster_code                # Main processing pipeline
+│   |   ├── pipeline_MiniMe.sh          
 └── README.md                   # Project documentation
 ```
 
