@@ -81,8 +81,8 @@ bash pipeline_MiniMe.sh HD_Mouse5_0928_Stg3 dff
 ├── parcels_updated12522.mat    # Allen Map for the parcellation of Meso Imaging
 ├── MesoROI_square_rotation.py  # ROI selection and alignment preparation script
 ├── meso_code                   # Folder with auxiliary scripts
-│   ├── cluster_code                # Main processing pipeline
-│   |   ├── pipeline_MiniMe.sh          
+│   ├── cluster_code                # Main processing pipeline for HPC
+│   |   ├── pipeline_MiniMe.sh          # Pipeline Code
 └── README.md                   # Project documentation
 ```
 
