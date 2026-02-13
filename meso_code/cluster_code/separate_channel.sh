@@ -9,5 +9,6 @@
 
 
 module load miniconda
+conda env create -f analysis.yml
 conda activate DEEPLABCUT
 python 	separate_channel_Hao_v14_auto_limit_64col.py $1 $2
