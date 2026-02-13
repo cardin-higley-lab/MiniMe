@@ -54,7 +54,7 @@ This step performs:
 
 After completing ROI selection locally, upload the meso_code folder to your HPC working directory.
 
-### 4.1 Update Data Paths in `defineIODirs.m`
+#### 4.1 Update Data Paths in `defineIODirs.m`
 Open `meso_code/defineIODirs.m`. Modify the following lines to match your HPC data directory:
 
 ```matlab
@@ -62,7 +62,7 @@ fixedInputDir = '/vast/palmer/scratch/higley/hd362/HD_Mouse_Training';
 fixedOutputDir = '/vast/palmer/scratch/higley/hd362/HD_Mouse_Training';
 ```
 
-### 4.2 Update Data Path in `separate_channel.sh`
+#### 4.2 Update Data Path in `separate_channel.sh`
 Open `meso_code/cluster_code/separate_channel.sh`. Locate the `DATA_FOLDER` variable and update it:
 ```bash
 DATA_FOLDER=/path/to/your/data_folder
