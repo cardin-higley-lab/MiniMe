@@ -9,6 +9,17 @@
 
 
 module load miniconda
-conda env create -f analysis.yml
-conda activate DEEPLABCUT
+
+# Initialize conda for batch shell
+source $(conda info --base)/etc/profile.d/conda.sh
+
+# Check if environment exists
+if conda env list | grep -q "analysis"; then
+    echo "Environment analysis already exists."
+else
+    echo "Creating analysis environment..."
+    conda env create -f analysis.yml
+fi
+
+conda activate analysis
 python 	separate_channel_Hao_v14_auto_limit_64col.py $1 $2
