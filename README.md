@@ -68,6 +68,8 @@ Open `meso_code/cluster_code/separate_channel.sh`. Locate the `DATA_FOLDER` vari
 DATA_FOLDER=/path/to/your/data_folder
 ```
 
+---
+
 ## Step 5: Run the Processing Pipeline
 
 Navigate to the `meso_code/cluster_code` folder:
