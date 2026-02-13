@@ -1,0 +1,21 @@
+name: analysis
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - scikit-image
+  - h5py
+  - pandas
+  - imageio
+  - numpy
+  - matplotlib
+  - opencv
+  - tqdm
+  - ipykernel
+  - openpyxl
+  - natsort
+  - pip
+  - pip:
+      - keyboard
+prefix: C:\Users\HigleyLab_Miniscope\anaconda3\envs\analysis
+
