@@ -27,6 +27,7 @@ import sys
 import glob
 import json
 from collections import defaultdict
+from pathlib import Path
 
 # Third-party
 import cv2
@@ -48,7 +49,8 @@ startIndex = 0
 endIndex = 0
 
 # NOTE: These globals are used inside functions; they are set in main before use.
-main_folder = '/vast/palmer/scratch/higley/hd362/HD_Mouse_Training'
+main_folder = Path(sys.argv[3])
+# main_folder = '/vast/palmer/scratch/higley/hd362/HD_Mouse_Training'
 mouse_folder = glob.glob(os.path.join(main_folder, '*Mouse*'))
 
 # I/O + processing globals (populated later in main)
@@ -548,3 +550,4 @@ if __name__ == "__main__":
             {'meanvalue': meanvalue})
 
     print("\n[INFO] Pipeline finished successfully.")
+
