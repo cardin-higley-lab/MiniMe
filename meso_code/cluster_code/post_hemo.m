@@ -12,7 +12,8 @@ mouseID = id_date_time(findslash(1)+1:findslash(2)-1);
 date = id_date_time(findslash(2)+1:findslash(3)-1);
 
 % load allen parcels
-load('/gpfs/gibbs/project/higley/hd362/meso_code/MesoProcessing-master/allen_parcel/parcels_updated12522.mat', 'allen_parcels');
+load('../MesoProcessing-master/allen_parcel/parcels_updated12522.mat', 'allen_parcels');
+%load('/gpfs/gibbs/project/higley/hd362/meso_code/MesoProcessing-master/allen_parcel/parcels_updated12522.mat', 'allen_parcels');
 %load('parcells_updated121519.mat','parcells_new');
 %load('brain_mask.mat','brain_mask');
 load('parcel_obj.mat', 'parcel_obj')
