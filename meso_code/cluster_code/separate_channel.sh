@@ -22,4 +22,7 @@ else
 fi
 
 conda activate analysis
-python 	separate_channel_Hao_v14_auto_limit_64col.py $1 $2
+
+DATA_FOLDER=/vast/palmer/scratch/higley/hd362/HD_Mouse_Training
+
+python 	separate_channel_Hao_v14_auto_limit_64col.py $1 $2 $DATA_FOLDER
